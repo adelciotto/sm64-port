@@ -802,6 +802,9 @@ s32 act_walking(struct MarioState *m) {
     }
 
     if (m->input & INPUT_A_PRESSED) {
+        if (m->input & INPUT_ANALOG_SPIN) {
+            return set_jumping_action(m, ACT_SPIN_JUMP, 0);
+        }
         return set_jump_from_landing(m);
     }
 
@@ -978,6 +981,9 @@ s32 act_turning_around(struct MarioState *m) {
     }
 
     if (m->input & INPUT_A_PRESSED) {
+        if (m->input & INPUT_ANALOG_SPIN) {
+            return set_jumping_action(m, ACT_SPIN_JUMP, 0);
+        }
         return set_jumping_action(m, ACT_SIDE_FLIP, 0);
     }
 
@@ -1029,6 +1035,9 @@ s32 act_finish_turning_around(struct MarioState *m) {
     }
 
     if (m->input & INPUT_A_PRESSED) {
+        if (m->input & INPUT_ANALOG_SPIN) {
+            return set_jumping_action(m, ACT_SPIN_JUMP, 0);
+        }
         return set_jumping_action(m, ACT_SIDE_FLIP, 0);
     }
 

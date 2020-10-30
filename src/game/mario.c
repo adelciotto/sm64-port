@@ -777,7 +777,7 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
     f32 fowardVel;
 
     if ((m->squishTimer != 0 || m->quicksandDepth >= 1.0f)
-        && (action == ACT_DOUBLE_JUMP || action == ACT_TWIRLING)) {
+        && (action == ACT_DOUBLE_JUMP || action == ACT_TWIRLING || action == ACT_SPIN_JUMP)) {
         action = ACT_JUMP;
     }
 
@@ -796,6 +796,11 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
         case ACT_TRIPLE_JUMP:
             set_mario_y_vel_based_on_fspeed(m, 69.0f, 0.0f);
             m->forwardVel *= 0.8f;
+            break;
+
+        case ACT_SPIN_JUMP:
+            m->forwardVel = 10.0f;
+            set_mario_y_vel_based_on_fspeed(m, 69.0f, 0.0f);
             break;
 
         case ACT_FLYING_TRIPLE_JUMP:
@@ -1121,6 +1126,9 @@ s32 hurt_and_set_mario_action(struct MarioState *m, u32 action, u32 actionArg, s
  */
 s32 check_common_action_exits(struct MarioState *m) {
     if (m->input & INPUT_A_PRESSED) {
+        if (m->input == INPUT_ANALOG_SPIN) {
+            return set_mario_action(m, ACT_SPIN_JUMP, 0);
+        }
         return set_mario_action(m, ACT_JUMP, 0);
     }
     if (m->input & INPUT_OFF_FLOOR) {
@@ -1293,11 +1301,105 @@ void update_mario_button_inputs(struct MarioState *m) {
 }
 
 /**
+* Updates the stick spin state (i.e has the stick made a full rotation?).
+* This is modified code originally taken from the Extended Moveset by TheGag96.
+* https://github.com/TheGag96/sm64-port
+*/
+void update_mario_joystick_spin_input(struct MarioState *m, s16 stickAngle, f32 lastIntendedMag) {
+    // Angle checkpoints that the control stick needs to pass through for a spin.
+    // These checkpoints form a diagonal as to not sit on the signed overflow boundary.
+    static const s16 spinCheckpoints[] = {
+        0x2000, // Bottom-right diagonal (decimal: 8,192)
+        0x6000, // Top-right diagonal (decimal: 24,576)
+        0xA000, // Top-left diagonal (overflow decimal: -24,576)
+        0xE000, // Bottom-left diagonal (overflow decimal: -8,192)
+    };
+    static const size_t spinPointsLen = sizeof(spinCheckpoints) / sizeof(s16);
+    static const int requiredSpinPoints =  spinPointsLen - 1;
+    static const int spinTimeDuringInput = 6;
+    static const int spinTimeOnSuccess = 4;
+
+    if (lastIntendedMag > 0.5f && m->intendedMag > 0.5f) {
+        if (m->spinState == 0) {
+            for (size_t i = 0; i < spinPointsLen; i++) {
+                if (m->lastStickAngle < spinCheckpoints[i] &&
+                    stickAngle >= spinCheckpoints[i]) {
+                    m->spinState = 1;
+                    m->spinIndex = i;
+                    m->spinTimer = spinTimeDuringInput;
+                } else if (m->lastStickAngle >= spinCheckpoints[i] + 1 &&
+                           stickAngle <= spinCheckpoints[i] - 1) {
+                    m->spinState = -1;
+                    m->spinIndex = i;
+                    m->spinTimer = spinTimeDuringInput;
+                }
+            }
+        } else {
+            size_t nextIndex;
+            s32 spinStateContinue = FALSE;
+
+            if (m->spinState > 0) {
+                nextIndex = m->spinIndex == spinPointsLen - 1 ? 0 : (m->spinIndex + 1);
+
+                if (stickAngle < m->lastStickAngle && !(stickAngle <= 0 && m->lastStickAngle > 0)) {
+                    m->spinState = 0;
+                    m->spinTimer = 0;
+                } else if (m->lastStickAngle < spinCheckpoints[nextIndex] &&
+                           stickAngle >= spinCheckpoints[nextIndex]) {
+                    m->spinState++;
+                    m->spinIndex = nextIndex;
+                    m->spinTimer = spinTimeDuringInput;
+                    spinStateContinue = TRUE;
+                } else {
+                    m->spinTimer--;
+                }
+            } else {
+                nextIndex = m->spinIndex == 0 ? spinPointsLen - 1 : (m->spinIndex - 1);
+
+                if (stickAngle > m->lastStickAngle && !(stickAngle >= 0 && m->lastStickAngle < 0)) {
+                    m->spinState = 0;
+                    m->spinTimer = 0;
+                } else if (m->lastStickAngle > spinCheckpoints[nextIndex] &&
+                           stickAngle <= spinCheckpoints[nextIndex]) {
+                    m->spinState--;
+                    m->spinIndex = nextIndex;
+                    m->spinTimer = spinTimeDuringInput;
+                    spinStateContinue = TRUE;
+                } else {
+                    m->spinTimer--;
+                }
+            }
+
+            if (m->spinTimer == 0) {
+                m->spinState = 0;
+            }
+
+            if (spinStateContinue && (m->spinState >= requiredSpinPoints || m->spinState <= -requiredSpinPoints)) {
+                m->spinSuccessTimer = spinTimeOnSuccess;
+            }
+        }
+
+        if (m->spinSuccessTimer > 0) {
+            m->input |= INPUT_ANALOG_SPIN;
+            m->spinSuccessTimer--;
+        }
+    } else {
+        m->spinState = 0;
+        m->spinTimer = 0;
+        m->spinSuccessTimer = 0;
+    }
+
+    m->lastStickAngle = stickAngle;
+}
+
+/**
  * Updates the joystick intended magnitude.
  */
 void update_mario_joystick_inputs(struct MarioState *m) {
     struct Controller *controller = m->controller;
     f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
+
+    f32 lastIntendedMag = m->intendedMag;
 
     if (m->squishTimer == 0) {
         m->intendedMag = mag / 2.0f;
@@ -1305,12 +1407,16 @@ void update_mario_joystick_inputs(struct MarioState *m) {
         m->intendedMag = mag / 8.0f;
     }
 
+    s16 stickAngle = atan2s(-controller->stickY, controller->stickX);
+
     if (m->intendedMag > 0.0f) {
-        m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
+        m->intendedYaw = stickAngle + m->area->camera->yaw;
         m->input |= INPUT_NONZERO_ANALOG;
     } else {
         m->intendedYaw = m->faceAngle[1];
     }
+
+    update_mario_joystick_spin_input(m, stickAngle, lastIntendedMag);
 }
 
 /**
@@ -1872,6 +1978,14 @@ void init_mario(void) {
     }
 
     gMarioState->gravityHeaviness = 0.0f;
+
+    gMarioState->lastStickAngle = 0;
+    gMarioState->spinState = 0;
+    gMarioState->spinIndex = 0;
+    gMarioState->spinTimer = 0;
+    gMarioState->spinSuccessTimer = 0;
+    gMarioState->spinDir = 0;
+    gMarioState->spinYaw = 0;
 }
 
 void init_mario_from_save_file(void) {
