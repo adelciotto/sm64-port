@@ -487,7 +487,7 @@ s32 check_ground_dive_or_punch(struct MarioState *m) {
 
     if (m->input & INPUT_B_PRESSED) {
         //! Speed kick (shoutouts to SimpleFlips)
-        if (m->forwardVel >= 29.0f && m->controller->stickMag > 48.0f) {
+        if (m->forwardVel >= 12.0f && m->controller->stickMag > 40.0f) {
             m->vel[1] = 20.0f;
             return set_mario_action(m, ACT_DIVE, 1);
         }
@@ -776,6 +776,15 @@ void tilt_body_ground_shell(struct MarioState *m, s16 startYaw) {
 
     marioObj->header.gfx.angle[2] = val0C->torsoAngle[2];
     marioObj->header.gfx.pos[1] += 45.0f;
+}
+
+s32 rollout_of_dive_slide(struct MarioState *m) {
+#ifdef VERSION_SH
+    queue_rumble_data(5, 80);
+#endif
+
+    u32 action = m->forwardVel > 0.0f ? ACT_FORWARD_ROLLOUT : ACT_BACKWARD_ROLLOUT;
+    return set_mario_action(m, action, 0);
 }
 
 s32 act_walking(struct MarioState *m) {
@@ -1559,12 +1568,25 @@ s32 act_hold_stomach_slide(struct MarioState *m) {
 }
 
 s32 act_dive_slide(struct MarioState *m) {
-    if (!(m->input & INPUT_ABOVE_SLIDE) && (m->input & (INPUT_A_PRESSED | INPUT_B_PRESSED))) {
-#ifdef VERSION_SH
-        queue_rumble_data(5, 80);
-#endif
-        return set_mario_action(m, m->forwardVel > 0.0f ? ACT_FORWARD_ROLLOUT : ACT_BACKWARD_ROLLOUT,
-                                0);
+     // When mario slows down enough during a dive slide, then he won't be able to dive again.
+    // So ensure A or B will roll him out of it.
+    if (m->forwardVel < 28.0f) {
+        if (!(m->input & INPUT_ABOVE_SLIDE) &&
+            (m->input & (INPUT_A_PRESSED | INPUT_B_PRESSED))) {
+            return rollout_of_dive_slide(m);
+        }
+    }
+
+    // Otherwise if mario is moving fast enough, then he can continue to dive.
+    else {
+        if (!(m->input & INPUT_ABOVE_SLIDE) && (m->input & (INPUT_A_PRESSED))) {
+            return rollout_of_dive_slide(m);
+        }
+
+        if (!(m->input & INPUT_ABOVE_SLIDE) && m->input & INPUT_B_PRESSED) {
+            m->vel[1] = 20.0f;
+            return set_mario_action(m, ACT_DIVE, 1);
+        }
     }
 
     play_mario_landing_sound_once(m, SOUND_ACTION_TERRAIN_BODY_HIT_GROUND);
