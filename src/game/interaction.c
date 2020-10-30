@@ -32,17 +32,18 @@
 #define INT_FAST_ATTACK_OR_SHELL  (1 << 5) // 0x20
 #define INT_HIT_FROM_ABOVE        (1 << 6) // 0x40
 #define INT_HIT_FROM_BELOW        (1 << 7) // 0x80
+#define INT_HIT_SPIN              (1 << 8) // 0x100
 
 #define INT_ATTACK_NOT_FROM_BELOW                                                 \
     (INT_GROUND_POUND_OR_TWIRL | INT_PUNCH | INT_KICK | INT_TRIP | INT_SLIDE_KICK \
-     | INT_FAST_ATTACK_OR_SHELL | INT_HIT_FROM_ABOVE)
+     | INT_FAST_ATTACK_OR_SHELL | INT_HIT_FROM_ABOVE | INT_HIT_SPIN)
 
 #define INT_ANY_ATTACK                                                            \
     (INT_GROUND_POUND_OR_TWIRL | INT_PUNCH | INT_KICK | INT_TRIP | INT_SLIDE_KICK \
-     | INT_FAST_ATTACK_OR_SHELL | INT_HIT_FROM_ABOVE | INT_HIT_FROM_BELOW)
+     | INT_FAST_ATTACK_OR_SHELL | INT_HIT_FROM_ABOVE | INT_HIT_FROM_BELOW | INT_HIT_SPIN)
 
 #define INT_ATTACK_NOT_WEAK_FROM_ABOVE                                                \
-    (INT_GROUND_POUND_OR_TWIRL | INT_PUNCH | INT_KICK | INT_TRIP | INT_HIT_FROM_BELOW)
+    (INT_GROUND_POUND_OR_TWIRL | INT_PUNCH | INT_KICK | INT_TRIP | INT_HIT_FROM_BELOW | INT_HIT_SPIN)
 
 u8 sDelayInvincTimer;
 s16 sInvulnerable;
@@ -184,7 +185,8 @@ u32 determine_interaction(struct MarioState *m, struct Object *o) {
     u32 action = m->action;
 
     if (action & ACT_FLAG_ATTACKING) {
-        if (action == ACT_PUNCHING || action == ACT_MOVE_PUNCHING || action == ACT_JUMP_KICK) {
+        if (action == ACT_PUNCHING || action == ACT_MOVE_PUNCHING ||
+            action == ACT_JUMP_KICK || action == ACT_SPIN_ATTACK) {
             s16 dYawToObject = mario_obj_angle_to_object(m, o) - m->faceAngle[1];
 
             if (m->flags & MARIO_PUNCHING) {
@@ -197,6 +199,12 @@ u32 determine_interaction(struct MarioState *m, struct Object *o) {
                 // 120 degrees total, or 60 each way
                 if (-0x2AAA <= dYawToObject && dYawToObject <= 0x2AAA) {
                     interaction = INT_KICK;
+                }
+            }
+            if (m->flags & MARIO_SPIN_ATTACKING) {
+                // 120 degrees total, or 60 each way
+                if (-0x2AAA <= dYawToObject && dYawToObject <= 0x2AAA) {
+                    interaction = INT_HIT_SPIN;
                 }
             }
             if (m->flags & MARIO_TRIPPING) {
@@ -255,6 +263,7 @@ u32 attack_object(struct Object *o, s32 interaction) {
             attackType = ATTACK_GROUND_POUND_OR_TWIRL;
             break;
         case INT_PUNCH:
+        case INT_HIT_SPIN:
             attackType = ATTACK_PUNCH;
             break;
         case INT_KICK:
@@ -648,22 +657,26 @@ void push_mario_out_of_object(struct MarioState *m, struct Object *o, f32 paddin
 }
 
 void bounce_back_from_attack(struct MarioState *m, u32 interaction) {
-    if (interaction & (INT_PUNCH | INT_KICK | INT_TRIP)) {
+    if (interaction & (INT_PUNCH | INT_KICK | INT_TRIP | INT_HIT_SPIN)) {
         if (m->action == ACT_PUNCHING) {
             m->action = ACT_MOVE_PUNCHING;
         }
 
-        if (m->action & ACT_FLAG_AIR) {
-            mario_set_forward_vel(m, -16.0f);
+        if (m->action == ACT_SPIN_ATTACK) {
+            mario_set_forward_vel(m, -8.0f);
         } else {
-            mario_set_forward_vel(m, -48.0f);
+            if (m->action & ACT_FLAG_AIR) {
+                mario_set_forward_vel(m, -16.0f);
+            } else {
+                mario_set_forward_vel(m, -48.0f);
+            }
         }
 
         set_camera_shake_from_hit(SHAKE_ATTACK);
         m->particleFlags |= PARTICLE_TRIANGLE;
     }
 
-    if (interaction & (INT_PUNCH | INT_KICK | INT_TRIP | INT_FAST_ATTACK_OR_SHELL)) {
+    if (interaction & (INT_PUNCH | INT_KICK | INT_TRIP | INT_HIT_SPIN | INT_FAST_ATTACK_OR_SHELL)) {
         play_sound(SOUND_ACTION_HIT_2, m->marioObj->header.gfx.cameraToObject);
     }
 }
@@ -1508,7 +1521,7 @@ u32 check_object_grab_mario(struct MarioState *m, UNUSED u32 interactType, struc
 
 u32 interact_pole(struct MarioState *m, UNUSED u32 interactType, struct Object *o) {
     s32 actionId = m->action & ACT_ID_MASK;
-    if (actionId >= 0x080 && actionId < 0x0A0) {
+    if ((actionId >= 0x080 && actionId < 0x0A0) || m->action == ACT_SPIN_ATTACK) {
         if (!(m->prevAction & ACT_FLAG_ON_POLE) || m->usedObj != o) {
 #ifdef VERSION_SH
             f32 velConv = m->forwardVel; // conserve the velocity.
@@ -1804,7 +1817,7 @@ void mario_process_interactions(struct MarioState *m) {
     //! If the kick/punch flags are set and an object collision changes Mario's
     // action, he will get the kick/punch wall speed anyway.
     check_kick_or_punch_wall(m);
-    m->flags &= ~MARIO_PUNCHING & ~MARIO_KICKING & ~MARIO_TRIPPING;
+    m->flags &= ~MARIO_PUNCHING & ~MARIO_KICKING & ~MARIO_TRIPPING & ~MARIO_SPIN_ATTACKING;
 
     if (!(m->marioObj->collidedObjInteractTypes & (INTERACT_WARP_DOOR | INTERACT_DOOR))) {
         sDisplayingDoorText = FALSE;
