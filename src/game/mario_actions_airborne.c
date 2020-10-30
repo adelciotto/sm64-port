@@ -21,6 +21,13 @@ void play_flip_sounds(struct MarioState *m, s16 frame1, s16 frame2, s16 frame3) 
     }
 }
 
+void play_forward_spinning_sounds(struct MarioState *m) {
+    if (m->marioObj->header.gfx.animInfo.animID == MARIO_ANIM_FORWARD_SPINNING &&
+        m->marioObj->header.gfx.animInfo.animFrame == 0) {
+        play_sound(SOUND_ACTION_SPIN, m->marioObj->header.gfx.cameraToObject);
+    }
+}
+
 void play_far_fall_sound(struct MarioState *m) {
     u32 action = m->action;
     if (!(action & ACT_FLAG_INVULNERABLE) && action != ACT_TWIRLING && action != ACT_FLYING
@@ -372,7 +379,25 @@ u32 common_air_action_step(struct MarioState *m, u32 landAction, s32 animation, 
     stepResult = perform_air_step(m, stepArg);
     switch (stepResult) {
         case AIR_STEP_NONE:
-            set_mario_animation(m, animation);
+            // Handle AIR_STEP_NONE for triple jump.
+            if (m->action == ACT_TRIPLE_JUMP) {
+                // Mario is falling from the triple jump and is close to approaching the floor (300 units),
+                // so he should exit the spinning animation.
+                if (m->actionState == 0 && (m->vel[1] < 0.0f && (m->pos[1] - m->floorHeight) <= 300.0f)) {
+                    m->actionState = 1;
+                }
+
+                if (m->actionState == 1) {
+                    set_mario_animation(m, MARIO_ANIM_GENERAL_FALL);
+                } else {
+                    set_mario_animation(m, animation);
+                }
+            }
+
+            // Handle AIR_STEP_NONE for all other jumps.
+            else {
+                set_mario_animation(m, animation);
+            }
             break;
 
         case AIR_STEP_LANDED:
@@ -492,13 +517,13 @@ s32 act_triple_jump(struct MarioState *m) {
     play_mario_sound(m, SOUND_ACTION_TERRAIN_JUMP, SOUND_MARIO_YAHOO);
 #endif
 
-    common_air_action_step(m, ACT_TRIPLE_JUMP_LAND, MARIO_ANIM_TRIPLE_JUMP, 0);
+    common_air_action_step(m, ACT_TRIPLE_JUMP_LAND, MARIO_ANIM_FORWARD_SPINNING, 0);
 #ifdef VERSION_SH
     if (m->action == ACT_TRIPLE_JUMP_LAND) {
         queue_rumble_data(5, 40);
     }
 #endif
-    play_flip_sounds(m, 2, 8, 20);
+    play_forward_spinning_sounds(m);
     return FALSE;
 }
 
