@@ -1,3 +1,34 @@
+# Super Mario 64 Port: New Moveset
+
+This is a WIP mod for Super Mario 64 that changes the moveset to include moves from Super Mario Sunshine and Super Mario Galaxy. So far the following has been added:
+
+* **Spinning Triple Jump**: Changes the animation for the triple jump to a forward spin to resemble the one from Super Mario Sunshine. This is just a cosmetic change, as it is not functionally different from the regular triple jump. It differs slightly from Sunshine, as Mario will roll out of the spin as he approaches the floor.
+* **Dive Hop**: Allows mario to continue diving on the ground like in Super Mario Sunshine. Adjusts the minimum forward velocity for diving on the ground too, so that Mario won't need to be moving as fast to start diving.
+* **Spin Attack**: Jump and press B to perform the new spin attack. Will cause mario to jump in mid-air and spin. This move is inspired by the Super Mario Galaxy spin attack. It can be used as an attack and to reach tricky areas.
+* **Spin Jump**: Rotate the control stick quick enough and Mario will launch a spin jump. This move was taken from Super Mario Sunshine.
+
+## Installation
+
+### PC Port
+
+Apply the `.patch` file from the Releases page to your cloned sm64-port repository.
+
+```bash
+git apply --reject --ignore-whitespace "sm64-port-new-moveset-vXXX.patch"
+```
+
+Then recompile:
+
+```
+make -j4
+```
+
+### N64 ROM
+
+Apply the .xdelta patch from the Releases page in this repo onto a clean SM64 ROM using your favorite Xdelta patcher (e.g. [Delta Patcher](https://www.romhacking.net/utilities/704/) or online ones like [this](https://hack64.net/tools/patcher.php) or [this](https://www.marcrobledo.com/RomPatcher.js/)).
+
+Original README begins below:
+
 # Super Mario 64 Port
 
 - This repo contains a full decompilation of Super Mario 64 (J), (U), and (E) with minor exceptions in the audio subsystem.

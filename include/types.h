@@ -344,6 +344,13 @@ struct MarioState
     /*0xC0*/ f32 quicksandDepth;
     /*0xC4*/ f32 unkC4;
     /*0xC8*/ f32 gravityHeaviness;
+    /*0xCA*/ s16 lastStickAngle;
+    /*0xCC*/ s16 spinState;
+    /*0xCE*/ u16 spinIndex;
+    /*0xD0*/ u16 spinTimer;
+    /*0xD2*/ u16 spinSuccessTimer;
+    /*0xD4*/ s16 spinDir;
+    /*0xD6*/ s16 spinYaw;
 };
 
 #endif // TYPES_H

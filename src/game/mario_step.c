@@ -578,6 +578,12 @@ void apply_gravity(struct MarioState *m) {
         if (m->vel[1] < -65.0f) {
             m->vel[1] = -65.0f;
         }
+    } else if (m->action == ACT_SPIN_JUMP && m->vel[1] < 0.0f) {
+        m->gravityHeaviness = approach_f32(m->gravityHeaviness, 2.0f, 0.1f, 0.1f);
+        m->vel[1] -= m->gravityHeaviness;
+        if (m->vel[1] < -75.0f) {
+            m->vel[1] = -75.0f;
+        }
     } else {
         m->vel[1] -= 4.0f;
         if (m->vel[1] < -75.0f) {
