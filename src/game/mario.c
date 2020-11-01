@@ -1308,20 +1308,21 @@ void update_mario_button_inputs(struct MarioState *m) {
 void update_mario_joystick_spin_input(struct MarioState *m, s16 stickAngle, f32 lastIntendedMag) {
     // Angle checkpoints that the control stick needs to pass through for a spin.
     // These checkpoints form a diagonal as to not sit on the signed overflow boundary.
-    static const s16 spinCheckpoints[] = {
+    s16 spinCheckpoints[] = {
         0x2000, // Bottom-right diagonal (decimal: 8,192)
         0x6000, // Top-right diagonal (decimal: 24,576)
         0xA000, // Top-left diagonal (overflow decimal: -24,576)
         0xE000, // Bottom-left diagonal (overflow decimal: -8,192)
     };
-    static const size_t spinPointsLen = sizeof(spinCheckpoints) / sizeof(s16);
-    static const int requiredSpinPoints =  spinPointsLen - 1;
-    static const int spinTimeDuringInput = 6;
-    static const int spinTimeOnSuccess = 4;
+    s32 spinPointsLen = sizeof(spinCheckpoints) / sizeof(s16);
+    s32 requiredSpinPoints = spinPointsLen - 1;
+    u8 spinTimeDuringInput = 6;
+    u8 spinTimeOnSuccess = 4;
 
     if (lastIntendedMag > 0.5f && m->intendedMag > 0.5f) {
         if (m->spinState == 0) {
-            for (size_t i = 0; i < spinPointsLen; i++) {
+            s32 i;
+            for (i = 0; i < spinPointsLen; i++) {
                 if (m->lastStickAngle < spinCheckpoints[i] &&
                     stickAngle >= spinCheckpoints[i]) {
                     m->spinState = 1;
@@ -1335,7 +1336,7 @@ void update_mario_joystick_spin_input(struct MarioState *m, s16 stickAngle, f32 
                 }
             }
         } else {
-            size_t nextIndex;
+            s32 nextIndex;
             s32 spinStateContinue = FALSE;
 
             if (m->spinState > 0) {
@@ -1398,6 +1399,7 @@ void update_mario_joystick_spin_input(struct MarioState *m, s16 stickAngle, f32 
 void update_mario_joystick_inputs(struct MarioState *m) {
     struct Controller *controller = m->controller;
     f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
+    s16 stickAngle = atan2s(-controller->stickY, controller->stickX);
 
     f32 lastIntendedMag = m->intendedMag;
 
@@ -1406,8 +1408,6 @@ void update_mario_joystick_inputs(struct MarioState *m) {
     } else {
         m->intendedMag = mag / 8.0f;
     }
-
-    s16 stickAngle = atan2s(-controller->stickY, controller->stickX);
 
     if (m->intendedMag > 0.0f) {
         m->intendedYaw = stickAngle + m->area->camera->yaw;

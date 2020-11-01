@@ -537,6 +537,9 @@ s32 act_backflip(struct MarioState *m) {
 }
 
 s32 act_spin_jump(struct MarioState *m) {
+    s32 spinAnim;
+    s16 startSpinYaw;
+
     if (m->input & INPUT_B_PRESSED) {
         return set_mario_action(m, ACT_DIVE, 0);
     }
@@ -545,7 +548,7 @@ s32 act_spin_jump(struct MarioState *m) {
         return set_mario_action(m, ACT_GROUND_POUND, 0);
     }
 
-    s32 spinAnim = m->actionArg == 0 ? MARIO_ANIM_START_TWIRL : MARIO_ANIM_TWIRL;
+    spinAnim = m->actionArg == 0 ? MARIO_ANIM_START_TWIRL : MARIO_ANIM_TWIRL;
 
     if (is_anim_past_end(m)) {
         m->actionArg = 1;
@@ -562,7 +565,7 @@ s32 act_spin_jump(struct MarioState *m) {
         m->actionState = 1;
     }
 
-    s16 startSpinYaw = m->spinYaw;
+    startSpinYaw = m->spinYaw;
     m->spinYaw += 0x2000;
 
     if (startSpinYaw > m->spinYaw) {
@@ -685,11 +688,12 @@ s32 act_wall_kick_air(struct MarioState *m) {
 }
 
 s32 act_long_jump(struct MarioState *m) {
+    s32 animation;
+
     if (m->input & INPUT_B_PRESSED) {
         return set_mario_action(m, ACT_SPIN_ATTACK, 0);
     }
 
-    s32 animation;
     if (!m->marioObj->oMarioLongJumpIsSlow) {
         animation = MARIO_ANIM_FAST_LONGJUMP;
     } else {
@@ -713,11 +717,14 @@ s32 act_long_jump(struct MarioState *m) {
 }
 
 s32 act_spin_attack(struct MarioState *m) {
+    s32 spinAnim;
+    s16 startSpinYaw;
+
     if (m->input & INPUT_Z_PRESSED) {
         return set_mario_action(m, ACT_GROUND_POUND, 0);
     }
 
-    s32 spinAnim = m->actionArg == 0 ? MARIO_ANIM_START_TWIRL : MARIO_ANIM_TWIRL;
+    spinAnim = m->actionArg == 0 ? MARIO_ANIM_START_TWIRL : MARIO_ANIM_TWIRL;
 
     if (is_anim_past_end(m)) {
         m->actionArg = 1;
@@ -733,7 +740,7 @@ s32 act_spin_attack(struct MarioState *m) {
         m->actionState = 1;
     }
 
-    s16 startSpinYaw = m->spinYaw;
+    startSpinYaw = m->spinYaw;
     m->spinYaw += 0x1800;
 
     if (startSpinYaw > m->spinYaw) {
