@@ -735,7 +735,6 @@ s32 act_spin_attack(struct MarioState *m) {
                          SOUND_MARIO_YAH_WAH_HOO + ((gAudioRandom % 3) << 16));
 
         m->marioObj->header.gfx.animInfo.animID = -1;
-        m->faceAngle[1] = m->intendedYaw;
         m->gravityHeaviness = 0.0f;
         m->actionState = 1;
     }
