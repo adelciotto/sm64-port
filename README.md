@@ -1,4 +1,4 @@
-# Super Mario 64 Port: New Moveset
+# Super Mario 64 Port: Alternative Moveset
 
 This is a WIP mod for Super Mario 64 that changes the moveset to include moves from Super Mario Sunshine and Super Mario Galaxy. So far the following has been added:
 
@@ -6,6 +6,7 @@ This is a WIP mod for Super Mario 64 that changes the moveset to include moves f
 * **Dive Hop**: Allows mario to continue diving on the ground like in Super Mario Sunshine. Adjusts the minimum forward velocity for diving on the ground too, so that Mario won't need to be moving as fast to start diving.
 * **Spin Attack**: Jump and press B to perform the new spin attack. Will cause mario to jump in mid-air and spin. This move is inspired by the Super Mario Galaxy spin attack. It can be used as an attack and to reach tricky areas.
 * **Spin Jump**: Rotate the control stick quick enough and Mario will launch a spin jump. This move was taken from Super Mario Sunshine.
+* **Responsiveness**: Some general changes to Marios controls to improve responsiveness.
 
 ## Installation
 
@@ -14,7 +15,7 @@ This is a WIP mod for Super Mario 64 that changes the moveset to include moves f
 Apply the `.patch` file from the Releases page to your cloned sm64-port repository.
 
 ```bash
-git apply --reject --ignore-whitespace "sm64-port-new-moveset-vXXX.patch"
+git apply --reject --ignore-whitespace "sm64-port-alternative-moveset-vXXX.patch"
 ```
 
 Then recompile:
