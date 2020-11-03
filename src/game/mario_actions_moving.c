@@ -420,7 +420,7 @@ s32 apply_slope_decel(struct MarioState *m, f32 decelCoef) {
 s32 update_decelerating_speed(struct MarioState *m) {
     s32 stopped = FALSE;
 
-    if ((m->forwardVel = approach_f32(m->forwardVel, 0.0f, 1.0f, 1.0f)) == 0.0f) {
+    if ((m->forwardVel = approach_f32(m->forwardVel, 0.0f, 1.4f, 1.4f)) == 0.0f) {
         stopped = TRUE;
     }
 
@@ -460,7 +460,8 @@ void update_walking_speed(struct MarioState *m) {
     }
 
     m->faceAngle[1] =
-        m->intendedYaw - approach_s32((s16)(m->intendedYaw - m->faceAngle[1]), 0, 0x800, 0x800);
+        m->intendedYaw - approach_s32((s16)(m->intendedYaw - m->faceAngle[1]), 0, 0x1000, 0x1000);
+
     apply_slope_accel(m);
 }
 
@@ -487,7 +488,7 @@ s32 check_ground_dive_or_punch(struct MarioState *m) {
 
     if (m->input & INPUT_B_PRESSED) {
         //! Speed kick (shoutouts to SimpleFlips)
-        if (m->forwardVel >= 12.0f && m->controller->stickMag > 40.0f) {
+        if (m->forwardVel >= 12.0f && m->controller->stickMag > 48.0f) {
             m->vel[1] = 20.0f;
             return set_mario_action(m, ACT_DIVE, 1);
         }
@@ -506,7 +507,7 @@ s32 begin_braking_action(struct MarioState *m) {
         return set_mario_action(m, ACT_STANDING_AGAINST_WALL, 0);
     }
 
-    if (m->forwardVel >= 16.0f && m->floor->normal.y >= 0.17364818f) {
+    if (m->forwardVel >= 24.0f && m->floor->normal.y >= 0.17364818f) {
         return set_mario_action(m, ACT_BRAKING, 0);
     }
 
@@ -816,7 +817,7 @@ s32 act_walking(struct MarioState *m) {
         return begin_braking_action(m);
     }
 
-    if (analog_stick_held_back(m) && m->forwardVel >= 16.0f) {
+    if (analog_stick_held_back(m) && m->forwardVel >= 10.0f) {
         return set_mario_action(m, ACT_TURNING_AROUND, 0);
     }
 
@@ -867,7 +868,7 @@ s32 act_move_punching(struct MarioState *m) {
     mario_update_punch_sequence(m);
 
     if (m->forwardVel >= 0.0f) {
-        apply_slope_decel(m, 0.5f);
+        apply_slope_decel(m, 1.0f);
     } else {
         if ((m->forwardVel += 8.0f) >= 0.0f) {
             m->forwardVel = 0.0f;
@@ -1013,7 +1014,7 @@ s32 act_turning_around(struct MarioState *m) {
             break;
     }
 
-    if (m->forwardVel >= 18.0f) {
+    if (m->forwardVel >= 12.0f) {
         set_mario_animation(m, MARIO_ANIM_TURNING_PART1);
     } else {
         set_mario_animation(m, MARIO_ANIM_TURNING_PART2);
@@ -1049,7 +1050,7 @@ s32 act_finish_turning_around(struct MarioState *m) {
     }
 
     if (is_anim_at_end(m)) {
-        set_mario_action(m, ACT_WALKING, 0);
+        begin_walking_action(m, (m->forwardVel > 0.0f) ? m->forwardVel : 8.0f, ACT_WALKING, 0);
     }
 
     m->marioObj->header.gfx.angle[1] += 0x8000;
@@ -1063,7 +1064,7 @@ s32 act_braking(struct MarioState *m) {
         return check_common_action_exits(m);
     }
 
-    if (apply_slope_decel(m, 2.0f)) {
+    if (apply_slope_decel(m, 4.0f)) {
         return set_mario_action(m, ACT_BRAKING_STOP, 0);
     }
 
@@ -1760,7 +1761,7 @@ u32 common_landing_action(struct MarioState *m, s16 animation, u32 airAction) {
     if (m->input & INPUT_NONZERO_ANALOG) {
         apply_landing_accel(m, 0.98f);
     } else if (m->forwardVel >= 16.0f) {
-        apply_slope_decel(m, 2.0f);
+        apply_slope_decel(m, 4.0f);
     } else {
         m->vel[1] = 0.0f;
     }
