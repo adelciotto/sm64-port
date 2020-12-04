@@ -637,3 +637,11 @@ s32 check_warp_checkpoint(struct WarpNode *warpNode) {
 
     return warpCheckpointActive;
 }
+
+// enum Song save_file_get_course_music(s32 fileIndex, s32 courseIndex) {
+//    return gSaveBuffer.files[fileIndex][0].courseMusic[courseIndex]
+// }
+
+// void save_file_set_course_music(s32 fileIndex, s32 courseIndex, enum Song songId) {
+//     gSaveBuffer.files[fileIndex][0].courseMusic[courseIndex] = songId;
+// }

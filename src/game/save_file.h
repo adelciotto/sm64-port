@@ -7,6 +7,7 @@
 #include "area.h"
 
 #include "course_table.h"
+#include "music_select.h"
 
 #define EEPROM_SIZE 0x200
 #define NUM_SAVE_FILES 4
@@ -152,6 +153,8 @@ s32 save_file_get_cap_pos(Vec3s capPos);
 void save_file_set_sound_mode(u16 mode);
 u16 save_file_get_sound_mode(void);
 void save_file_move_cap_to_default_location(void);
+// enum Song save_file_get_course_music(s32 fileIndex, s32 courseIndex);
+// void save_file_set_course_music(s32 fileIndex, s32 courseIndex, enum Song songId);
 
 void disable_warp_checkpoint(void);
 void check_if_should_set_warp_checkpoint(struct WarpNode *warpNode);

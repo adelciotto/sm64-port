@@ -15,6 +15,7 @@
 #include "sm64.h"
 #include "sound_init.h"
 #include "thread6.h"
+#include "music_select.h"
 
 #define MUSIC_NONE 0xFFFF
 
@@ -199,6 +200,12 @@ void play_infinite_stairs_music(void) {
 }
 
 void set_background_music(u16 a, u16 seqArgs, s16 fadeTimer) {
+    struct MusicSelection musicSelection;
+    if (music_select_check(gCurrCourseNum, gCurrLevelNum, seqArgs, &musicSelection) == TRUE) {
+        a = musicSelection.presetId;
+        seqArgs = musicSelection.seqId;
+    }
+
     if (gResetTimer == 0 && seqArgs != sCurrentMusic) {
         if (gCurrCreditsEntry != NULL) {
             sound_reset(7);

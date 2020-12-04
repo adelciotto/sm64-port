@@ -20,6 +20,7 @@
 #include "segment_symbols.h"
 #include "thread6.h"
 #include <prevent_bss_reordering.h>
+#include "music_select.h"
 
 // FIXME: I'm not sure all of these variables belong in this file, but I don't
 // know of a good way to split them
@@ -634,6 +635,8 @@ void thread5_game_loop(UNUSED void *arg) {
 
     play_music(SEQ_PLAYER_SFX, SEQUENCE_ARGS(0, SEQ_SOUND_PLAYER), 0);
     set_sound_mode(save_file_get_sound_mode());
+
+    music_select_init();
 
 #ifdef TARGET_N64
     rendering_init();

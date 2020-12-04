@@ -472,4 +472,27 @@
 #define TEXT_MENU_STARS_DE _("   GEHEIME STERNE")
 #endif // VERSION_EU
 
+#define TEXT_MUSIC_SELECT_MENU _("MUSIC SELECT")
+#define TEXT_MENU_CASTLE _("PEACHES CASTLE HUB")
+#define TEXT_MUSIC_SELECT_DEFAULT _("Default -")
+#define TEXT_MUSIC_SELECT_SELECTED _("Selected -")
+#define TEXT_MENU_SONG_NO_MUSIC _("No Music")
+#define TEXT_MENU_SONG_TITLE_THEME _("Title Theme")
+#define TEXT_MENU_SONG_MAIN_THEME _("Main Theme")
+#define TEXT_MENU_SONG_INSIDE_CASTLE _("Inside Castle")
+#define TEXT_MENU_SONG_DIRE_DIRE_DOCKS _("Dire Dire Docks")
+#define TEXT_MENU_SONG_LETHAL_LAVA_LAND _("Lethal Lava Land")
+#define TEXT_MENU_SONG_KOOPAS_THEME _("Koopas Theme")
+#define TEXT_MENU_SONG_SNOW_MOUNTAIN _("Snow Mountain")
+#define TEXT_MENU_SONG_SLIDER _("Slider")
+#define TEXT_MENU_SONG_HAUNTED_HOUSE _("Haunted House")
+#define TEXT_MENU_SONG_CAVE_DUNGEON _("Cave Dungeon")
+#define TEXT_MENU_SONG_KOOPAS_ROAD _("Koopas Road")
+#define TEXT_MENU_SONG_ULTIMATE_KOOPA _("Ultimate Koopa")
+#define TEXT_MENU_SONG_FILE_SELECT _("File Select")
+#define TEXT_MENU_SONG_STAGE_BOSS _("Stage Boss")
+#define TEXT_MENU_SONG_MERRY_GO_ROUND _("Merry-Go-Round")
+#define TEXT_MENU_SONG_METALLIC_MARIO _("Metallic Mario")
+#define TEXT_MENU_SONG_POWERFUL_MARIO _("Powerful Mario")
+
 #endif // TEXT_STRINGS_H

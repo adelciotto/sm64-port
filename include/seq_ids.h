@@ -2,6 +2,7 @@
 #define SEQ_IDS_H
 
 #define SEQ_VARIATION 0x80
+#define SEQ_NONE 0x90
 
 enum SeqId {
     SEQ_SOUND_PLAYER,                 // 0x00

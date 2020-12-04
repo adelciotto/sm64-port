@@ -117,6 +117,8 @@ extern s8 gRedCoinsCollected;
 void create_dl_identity_matrix(void);
 void create_dl_translation_matrix(s8 pushOp, f32 x, f32 y, f32 z);
 void create_dl_ortho_matrix(void);
+void create_dl_scale_matrix(s8 pushOp, f32 x, f32 y, f32 z);
+void create_dl_rotation_matrix(s8 pushOp, f32 a, f32 x, f32 y, f32 z);
 void print_generic_string(s16 x, s16 y, const u8 *str);
 void print_hud_lut_string(s8 hudLUT, s16 x, s16 y, const u8 *str);
 void print_menu_generic_string(s16 x, s16 y, const u8 *str);
@@ -127,9 +129,7 @@ s16 get_str_x_pos_from_center(s16 centerPos, u8 *str, f32 scale);
 #ifdef VERSION_JP
 #define get_str_x_pos_from_center get_str_x_pos_from_center_scale
 #endif
-#if defined(VERSION_JP) || defined(VERSION_EU)
 s16 get_str_x_pos_from_center_scale(s16 centerPos, u8 *str, f32 scale);
-#endif
 void print_hud_my_score_coins(s32 useCourseCoinScore, s8 fileNum, s8 courseNum, s16 x, s16 y);
 void int_to_str(s32 num, u8 *dst);
 s16 get_dialog_id(void);
