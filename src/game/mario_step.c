@@ -526,6 +526,10 @@ u32 should_strengthen_gravity_for_jump_ascent(struct MarioState *m) {
     }
 
     if (!(m->input & INPUT_A_DOWN) && m->vel[1] > 20.0f) {
+        if (m->action == ACT_DOUBLE_JUMP && m->actionArg == 1) {
+            return FALSE;
+        }
+
         return (m->action & ACT_FLAG_CONTROL_JUMP_HEIGHT) != 0;
     }
 
